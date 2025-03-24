@@ -1,0 +1,6 @@
+*
+!.gitignore
+!main.py
+!save.py
+!scrape.py
+!requirements.txt
