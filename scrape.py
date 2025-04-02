@@ -12,6 +12,8 @@ def scrape_page(concerts_key, url):
     '''Get songs and concert info from page'''
     # get page content
     page = session.get(url, timeout=10)
+    if page.status_code != 200:
+        print(f"\nUnexpected status code returned: {page.status_code}")
     soup = bs(page.content, "html.parser")
     content = soup.find("div", {"class": "row main"})
 
