@@ -8,7 +8,7 @@ Clone the repository by running `git clone https://github.com/john-bieren/setlis
 
 ## Usage
 
-Create a file in the project directory named `link_list.json` or run `main.py` to have the file created for you. Enter the links for the setlists that you wish to scrape into `link_list.json` as a list, as demonstrated below.
+Create a file in the project directory named `setlists.json` or run `main.py` to have the file created for you. Enter the links for the setlists that you wish to scrape into `setlists.json` as a list, as demonstrated below.
 
 ```JSON
 [

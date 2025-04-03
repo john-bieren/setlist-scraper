@@ -14,11 +14,11 @@ from scrape import scrape_page
 
 def main():
     print("Loading concerts")
-    link_list = load_link_list()
+    setlists = load_setlists()
     concerts_df, songs_df = (pd.DataFrame() for _ in range(2))
 
     print("Scraping setlists")
-    for concerts_key, url in tqdm(enumerate(link_list), total=len(link_list)):
+    for concerts_key, url in tqdm(enumerate(setlists), total=len(setlists)):
         c_df, s_df = scrape_page(concerts_key, url)
         concerts_df = pd.concat([concerts_df, c_df])
         songs_df = pd.concat([songs_df, s_df])
@@ -32,19 +32,19 @@ def main():
 
     print("Complete")
 
-def load_link_list():
-    '''Load URLs from link_list.json, exit the script if there's an issue'''
+def load_setlists():
+    '''Load URLs from setlists.json, exit the script if there's an issue'''
     try:
-        with open("link_list.json", "r", encoding="UTF-8") as file:
-            link_list = load(file)
-            if len(link_list) == 0:
-                print("Please put setlist links in link_list.json")
+        with open("setlists.json", "r", encoding="UTF-8") as file:
+            setlists = load(file)
+            if len(setlists) == 0:
+                print("Please put setlist links in setlists.json")
             else:
-                return link_list
+                return setlists
     except FileNotFoundError:
-        with open("link_list.json", "w", encoding="UTF-8") as file:
+        with open("setlists.json", "w", encoding="UTF-8") as file:
             dump([], file)
-        print("Please put setlist links in link_list.json")
+        print("Please put setlist links in setlists.json")
     sys_exit()
 
 if __name__ == "__main__":
