@@ -32,7 +32,6 @@ def scrape_page(concerts_key, url):
     songs_df = pd.DataFrame(concerts_key_col, columns=['concerts_key'])
     songs_df[['song', 'artist', 'performed_with', 'info']] = ""
 
-    # add the additional info from the notes listed for each song
     songs_df = add_song_info(songs_df, songs_list, artist)
     # these columns use += ending with ", " to handle multiple entries, so remove the trailing ", "
     for col in ('performed_with', 'info'):

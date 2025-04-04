@@ -7,8 +7,9 @@ WITH joined_concerts as (
 )
 SELECT
 	joined_concerts.Date, joined_concerts.Artist as Performer, joined_concerts.Venue, joined_concerts.City,
-	song_titles.Song, artists.Artist, performed_with.Artist as Performed_with, info FROM songs
+	song_titles.Song, artists.Artist, performed_with.Artist as Performed_with, info.Info FROM songs
 JOIN joined_concerts ON songs.concerts_key = joined_concerts.key
 JOIN song_titles ON songs.song_titles_key = song_titles.key
 JOIN artists ON songs.artists_key = artists.key
 JOIN artists performed_with ON songs.performed_with_artists_key = performed_with.key
+JOIN info ON songs.info_key = info.key

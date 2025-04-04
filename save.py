@@ -29,6 +29,7 @@ def refactor_dfs(concerts_df, songs_df):
     venues_dict = dict_make(concerts_df, "venue")
     cities_dict = dict_make(concerts_df, "city")
     song_titles_dict = dict_make(songs_df, "song")
+    info_dict = dict_make(songs_df, "info")
 
     # add arists that appear in the db but aren't one of the headline performers
     foreign_key = len(artists_dict)
@@ -49,9 +50,14 @@ def refactor_dfs(concerts_df, songs_df):
             ('city', cities_dict),
             ):
         concerts_df[col] = concerts_df[col].replace(dictionary).infer_objects(copy=False)
-    for col in ('artist', 'performed_with'):
-        songs_df[col] = songs_df[col].replace(artists_dict).infer_objects(copy=False)
-    songs_df['song'] = songs_df['song'].replace(song_titles_dict).infer_objects(copy=False)
+    for col, dictionary in (
+            ('artist', artists_dict),
+            ('performed_with', artists_dict),
+            ('song', song_titles_dict),
+            ('info', info_dict)
+            ):
+        songs_df[col] = songs_df[col].replace(dictionary).infer_objects(copy=False)
+
 
     # rename foreign key columns to reflect the table that they refer to
     concerts_df.rename(
@@ -66,7 +72,8 @@ def refactor_dfs(concerts_df, songs_df):
         columns = {
             'song': 'song_titles_key',
             'artist': 'artists_key',
-            'performed_with': 'performed_with_artists_key'
+            'performed_with': 'performed_with_artists_key',
+            'info': 'info_key'
         }, inplace=True
     )
 
@@ -76,6 +83,7 @@ def refactor_dfs(concerts_df, songs_df):
     venues_df = df_make(venues_dict, 'Venue')
     cities_df = df_make(cities_dict, 'City')
     song_titles_df = df_make(song_titles_dict, 'Song')
+    info_df = df_make(info_dict, 'Info')
 
     # return a dictionary of table names and their contents
     return {
@@ -85,7 +93,8 @@ def refactor_dfs(concerts_df, songs_df):
         "artists": artists_df,
         "venues": venues_df,
         "cities": cities_df,
-        "song_titles": song_titles_df
+        "song_titles": song_titles_df,
+        "info": info_df
     }
 
 def dict_make(df, col, key_start=0):
@@ -113,7 +122,8 @@ def sqlite_save(dfs_dict):
         ("artists", "Artist"),
         ("venues", "Venue"),
         ("cities", "City"),
-        ("song_titles", "Song")
+        ("song_titles", "Song"),
+        ("info", "Info")
     )
 
     # connect to db
@@ -148,11 +158,12 @@ def sqlite_save(dfs_dict):
                 song_titles_key INTEGER NOT NULL,
                 artists_key INTEGER NOT NULL,
                 performed_with_artists_key INTEGER,
-                info TEXT,
+                info_key INTEGER,
                 FOREIGN KEY (concerts_key) REFERENCES concerts(key) ON DELETE CASCADE,
                 FOREIGN KEY (song_titles_key) REFERENCES song_titles(key) ON DELETE CASCADE,
                 FOREIGN KEY (artists_key) REFERENCES artists(key) ON DELETE CASCADE,
-                FOREIGN KEY (performed_with_artists_key) REFERENCES artists(key) ON DELETE CASCADE
+                FOREIGN KEY (performed_with_artists_key) REFERENCES artists(key) ON DELETE CASCADE,
+                FOREIGN KEY (info_key) REFERENCES info(key) ON DELETE CASCADE
             )'''
             )
 
