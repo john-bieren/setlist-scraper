@@ -2,7 +2,7 @@
 
 '''Functions for saving data to SQLite'''
 
-from sqlite3 import OperationalError, connect
+from sqlite3 import connect
 from warnings import simplefilter
 
 import pandas as pd
@@ -130,56 +130,49 @@ def sqlite_save(dfs_dict):
     db_cursor = connect('setlist_scraper.db')
     cursor = db_cursor.cursor()
 
-    # interact with database; loop breaks when work is done, continues on errors
-    while True:
-        try:
-            # delete the existing tables so they can be replaced entirely
-            for table_name, _ in TABLES:
-                cursor.execute(f'DROP TABLE IF EXISTS {table_name}')
+    # delete the existing tables so they can be replaced entirely
+    for table_name, _ in TABLES:
+        cursor.execute(f'DROP TABLE IF EXISTS {table_name}')
 
-            # create tables
-            cursor.execute('''
-            CREATE TABLE concerts (
-                key INTEGER PRIMARY KEY,
-                dates_key INTEGER NOT NULL,
-                artists_key INTEGER NOT NULL,
-                venues_key INTEGER NOT NULL,
-                cities_key INTEGER NOT NULL,
-                FOREIGN KEY (dates_key) REFERENCES dates(key) ON DELETE CASCADE,
-                FOREIGN KEY (artists_key) REFERENCES artists(key) ON DELETE CASCADE,
-                FOREIGN KEY (venues_key) REFERENCES venues(key) ON DELETE CASCADE,
-                FOREIGN KEY (cities_key) REFERENCES cities(key) ON DELETE CASCADE
-            )'''
-            )
-            cursor.execute('''
-            CREATE TABLE songs (
-                key INTEGER PRIMARY KEY,
-                concerts_key INTEGER,
-                song_titles_key INTEGER NOT NULL,
-                artists_key INTEGER NOT NULL,
-                performed_with_artists_key INTEGER,
-                info_key INTEGER,
-                FOREIGN KEY (concerts_key) REFERENCES concerts(key) ON DELETE CASCADE,
-                FOREIGN KEY (song_titles_key) REFERENCES song_titles(key) ON DELETE CASCADE,
-                FOREIGN KEY (artists_key) REFERENCES artists(key) ON DELETE CASCADE,
-                FOREIGN KEY (performed_with_artists_key) REFERENCES artists(key) ON DELETE CASCADE,
-                FOREIGN KEY (info_key) REFERENCES info(key) ON DELETE CASCADE
-            )'''
-            )
+    # create tables
+    cursor.execute('''
+    CREATE TABLE concerts (
+        key INTEGER PRIMARY KEY,
+        dates_key INTEGER NOT NULL,
+        artists_key INTEGER NOT NULL,
+        venues_key INTEGER NOT NULL,
+        cities_key INTEGER NOT NULL,
+        FOREIGN KEY (dates_key) REFERENCES dates(key) ON DELETE CASCADE,
+        FOREIGN KEY (artists_key) REFERENCES artists(key) ON DELETE CASCADE,
+        FOREIGN KEY (venues_key) REFERENCES venues(key) ON DELETE CASCADE,
+        FOREIGN KEY (cities_key) REFERENCES cities(key) ON DELETE CASCADE
+    )'''
+    )
+    cursor.execute('''
+    CREATE TABLE songs (
+        key INTEGER PRIMARY KEY,
+        concerts_key INTEGER,
+        song_titles_key INTEGER NOT NULL,
+        artists_key INTEGER NOT NULL,
+        performed_with_artists_key INTEGER,
+        info_key INTEGER,
+        FOREIGN KEY (concerts_key) REFERENCES concerts(key) ON DELETE CASCADE,
+        FOREIGN KEY (song_titles_key) REFERENCES song_titles(key) ON DELETE CASCADE,
+        FOREIGN KEY (artists_key) REFERENCES artists(key) ON DELETE CASCADE,
+        FOREIGN KEY (performed_with_artists_key) REFERENCES artists(key) ON DELETE CASCADE,
+        FOREIGN KEY (info_key) REFERENCES info(key) ON DELETE CASCADE
+    )'''
+    )
 
-            # create foreign key tables
-            for table_name, col_name in TABLES[2:]:
-                cursor.execute(f"CREATE TABLE {table_name} (key INTEGER, {col_name} TEXT)")
+    # create foreign key tables
+    for table_name, col_name in TABLES[2:]:
+        cursor.execute(f"CREATE TABLE {table_name} (key INTEGER, {col_name} TEXT)")
 
-            # save data to tables
-            for table_name, df in dfs_dict.items():
-                df.reset_index(drop=True, inplace=True)
-                df.index.name = 'key'
-                df.to_sql(name=table_name, con=db_cursor, if_exists="append")
+    # save data to tables
+    for table_name, df in dfs_dict.items():
+        df.reset_index(drop=True, inplace=True)
+        df.index.name = 'key'
+        df.to_sql(name=table_name, con=db_cursor, if_exists="append")
 
-            db_cursor.commit()
-            db_cursor.close()
-            break
-
-        except OperationalError:
-            input("setlist_scraper.db is locked. Please close it to allow save, then press enter")
+    db_cursor.commit()
+    db_cursor.close()
