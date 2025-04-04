@@ -24,12 +24,12 @@ def csv_save(concerts_df, songs_df):
 def refactor_dfs(concerts_df, songs_df):
     '''Create new tables for redundant data and insert foreign keys where necessary'''
     # create foreign keys for certain columns
-    dates_dict = dict_make(concerts_df, "date")
-    artists_dict = dict_make(concerts_df, "artist")
-    venues_dict = dict_make(concerts_df, "venue")
-    cities_dict = dict_make(concerts_df, "city")
-    song_titles_dict = dict_make(songs_df, "song")
-    info_dict = dict_make(songs_df, "info")
+    dates_dict = dict_make(concerts_df["date"])
+    artists_dict = dict_make(concerts_df["artist"])
+    venues_dict = dict_make(concerts_df["venue"])
+    cities_dict = dict_make(concerts_df["city"])
+    song_titles_dict = dict_make(songs_df["song"])
+    info_dict = dict_make(songs_df["info"])
 
     # add arists that appear in the db but aren't one of the headline performers
     foreign_key = len(artists_dict)
@@ -97,13 +97,11 @@ def refactor_dfs(concerts_df, songs_df):
         "info": info_df
     }
 
-def dict_make(df, col, key_start=0):
+def dict_make(col):
     '''Create a dictionary of foreign keys for the values of a dataframe column'''
     dictionary = {}
-    key = key_start
-    for item in df[col].unique():
+    for key, item in enumerate(col.unique()):
         dictionary[item] = key
-        key += 1
     return dictionary
 
 def df_make(dictionary, column_name):
