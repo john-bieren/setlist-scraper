@@ -149,11 +149,11 @@ def sqlite_save(dfs_dict):
     cursor.execute('''
     CREATE TABLE songs (
         key INTEGER PRIMARY KEY,
-        concerts_key INTEGER,
+        concerts_key INTEGER NOT NULL,
         song_titles_key INTEGER NOT NULL,
         artists_key INTEGER NOT NULL,
-        performed_with_artists_key INTEGER,
-        info_key INTEGER,
+        performed_with_artists_key INTEGER NOT NULL,
+        info_key INTEGER NOT NULL,
         FOREIGN KEY (concerts_key) REFERENCES concerts(key) ON DELETE CASCADE,
         FOREIGN KEY (song_titles_key) REFERENCES song_titles(key) ON DELETE CASCADE,
         FOREIGN KEY (artists_key) REFERENCES artists(key) ON DELETE CASCADE,
