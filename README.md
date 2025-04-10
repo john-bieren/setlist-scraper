@@ -4,7 +4,10 @@ An app for collecting concert setlists from [setlist.fm](https://www.setlist.fm/
 
 ## Install
 
-Clone the repository by running `git clone https://github.com/john-bieren/setlist-scraper.git`.
+Clone the repository:
+```
+git clone https://github.com/john-bieren/setlist-scraper.git
+```
 
 ## Usage
 
