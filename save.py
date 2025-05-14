@@ -111,7 +111,7 @@ def df_make(dictionary, column_name):
     return pd.DataFrame.from_dict(swapped_dict, orient='index', columns=[column_name])
 
 def sqlite_save(dfs_dict):
-    '''Save data to setlist_scraper.db'''
+    '''Save data to setlist-scraper.db'''
     # table names and the name of the column for each foreign key table
     TABLES = (
         ("concerts", ""),
@@ -125,7 +125,7 @@ def sqlite_save(dfs_dict):
     )
 
     # connect to db
-    db_cursor = connect('setlist_scraper.db')
+    db_cursor = connect('setlist-scraper.db')
     cursor = db_cursor.cursor()
 
     # delete the existing tables so they can be replaced entirely

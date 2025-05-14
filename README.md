@@ -29,4 +29,4 @@ Run `main.py`. Upon completion, the data will be saved in two formats:
 
     `songs.csv` has a `concerts_key` column to allow you to join the concerts data to it in analysis software using the `key` column in `concerts.csv`.
 
-* A SQLite database with views corresponding to `concerts.csv` and the fully joined version of `songs.csv` described above.
+* A SQLite database, `setlist-scraper.db`, with views corresponding to `concerts.csv` and the fully joined version of `songs.csv` described above.
