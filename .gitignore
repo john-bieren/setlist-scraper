@@ -1,10 +1,4 @@
-*
-!.gitignore
-!main.py
-!save.py
-!scrape.py
-!concerts.sql
-!songs.sql
-!requirements.txt
-!LICENSE.txt
-!README.md
+setlists.json
+concerts.csv
+songs.csv
+setlist_scraper.db
