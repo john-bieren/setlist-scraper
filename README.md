@@ -8,6 +8,7 @@ Clone the repository:
 ```
 git clone https://github.com/john-bieren/setlist-scraper.git
 ```
+**Note**: The tags in this repository do not correspond to releases, they simply indicate breaking changes.
 
 ## Usage
 
