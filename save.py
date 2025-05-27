@@ -9,7 +9,7 @@ import pandas as pd
 
 
 def csv_save(concerts_df, songs_df):
-    '''Save data to .csv files'''
+    '''Save data to CSV files'''
     # reset index so that the two tables can be joined on songs_df['concerts_key']
     concerts_df.reset_index(drop=True, inplace=True)
     concerts_df.index.name = 'key'
@@ -19,7 +19,7 @@ def csv_save(concerts_df, songs_df):
             songs_df.to_csv("songs.csv", index=False)
             break
         except PermissionError:
-            input("One or both of the .csv save files are open. Close them to allow save, then press enter")
+            input("Close open CSV save file(s) to allow save, then press enter")
 
 def refactor_dfs(concerts_df, songs_df):
     '''Create new tables for redundant data and insert foreign keys where necessary'''

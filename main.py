@@ -23,7 +23,7 @@ def main():
         concerts_df = pd.concat([concerts_df, c_df])
         songs_df = pd.concat([songs_df, s_df])
 
-    print("Saving data to .csv")
+    print("Saving data to CSV")
     csv_save(concerts_df, songs_df)
 
     print("Saving data to SQLite")
