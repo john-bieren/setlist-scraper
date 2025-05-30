@@ -132,61 +132,61 @@ def sqlite_save(dfs_dict):
     for table_name, _ in TABLES:
         cursor.execute(f'DROP TABLE IF EXISTS {table_name}')
 
-    # create tables
+    # create tables and views
     cursor.execute('''
-    CREATE TABLE concerts (
-        key INTEGER PRIMARY KEY,
-        dates_key INTEGER NOT NULL,
-        artists_key INTEGER NOT NULL,
-        venues_key INTEGER NOT NULL,
-        cities_key INTEGER NOT NULL,
-        FOREIGN KEY (dates_key) REFERENCES dates(key) ON DELETE CASCADE,
-        FOREIGN KEY (artists_key) REFERENCES artists(key) ON DELETE CASCADE,
-        FOREIGN KEY (venues_key) REFERENCES venues(key) ON DELETE CASCADE,
-        FOREIGN KEY (cities_key) REFERENCES cities(key) ON DELETE CASCADE
-    )'''
-    )
+        CREATE TABLE concerts (
+            key INTEGER PRIMARY KEY,
+            dates_key INTEGER NOT NULL,
+            artists_key INTEGER NOT NULL,
+            venues_key INTEGER NOT NULL,
+            cities_key INTEGER NOT NULL,
+            FOREIGN KEY (dates_key) REFERENCES dates(key) ON DELETE CASCADE,
+            FOREIGN KEY (artists_key) REFERENCES artists(key) ON DELETE CASCADE,
+            FOREIGN KEY (venues_key) REFERENCES venues(key) ON DELETE CASCADE,
+            FOREIGN KEY (cities_key) REFERENCES cities(key) ON DELETE CASCADE
+        )
+    ''')
     cursor.execute('''
-    CREATE TABLE songs (
-        key INTEGER PRIMARY KEY,
-        concerts_key INTEGER NOT NULL,
-        song_titles_key INTEGER NOT NULL,
-        artists_key INTEGER NOT NULL,
-        performed_with_artists_key INTEGER NOT NULL,
-        info_key INTEGER NOT NULL,
-        FOREIGN KEY (concerts_key) REFERENCES concerts(key) ON DELETE CASCADE,
-        FOREIGN KEY (song_titles_key) REFERENCES song_titles(key) ON DELETE CASCADE,
-        FOREIGN KEY (artists_key) REFERENCES artists(key) ON DELETE CASCADE,
-        FOREIGN KEY (performed_with_artists_key) REFERENCES artists(key) ON DELETE CASCADE,
-        FOREIGN KEY (info_key) REFERENCES info(key) ON DELETE CASCADE
-    )'''
-    )
+        CREATE TABLE songs (
+            key INTEGER PRIMARY KEY,
+            concerts_key INTEGER NOT NULL,
+            song_titles_key INTEGER NOT NULL,
+            artists_key INTEGER NOT NULL,
+            performed_with_artists_key INTEGER NOT NULL,
+            info_key INTEGER NOT NULL,
+            FOREIGN KEY (concerts_key) REFERENCES concerts(key) ON DELETE CASCADE,
+            FOREIGN KEY (song_titles_key) REFERENCES song_titles(key) ON DELETE CASCADE,
+            FOREIGN KEY (artists_key) REFERENCES artists(key) ON DELETE CASCADE,
+            FOREIGN KEY (performed_with_artists_key) REFERENCES artists(key) ON DELETE CASCADE,
+            FOREIGN KEY (info_key) REFERENCES info(key) ON DELETE CASCADE
+        )
+    ''')
     cursor.execute('''
-    CREATE VIEW IF NOT EXISTS concerts_view AS
-    SELECT dates.Date, artists.Artist, venues.Venue, cities.City FROM concerts
-    JOIN cities on concerts.cities_key = cities.key
-    JOIN dates on concerts.dates_key = dates.key
-    JOIN artists on concerts.artists_key = artists.key
-    JOIN venues on concerts.venues_key = venues.key'''
-    )
-    cursor.execute('''
-    CREATE VIEW IF NOT EXISTS songs_view AS
-    WITH joined_concerts as (
-        SELECT concerts.key, dates.Date, artists.Artist, venues.Venue, cities.City FROM concerts
+        CREATE VIEW IF NOT EXISTS concerts_view AS
+        SELECT dates.Date, artists.Artist, venues.Venue, cities.City FROM concerts
         JOIN cities on concerts.cities_key = cities.key
         JOIN dates on concerts.dates_key = dates.key
         JOIN artists on concerts.artists_key = artists.key
         JOIN venues on concerts.venues_key = venues.key
-    )
-    SELECT
-        joined_concerts.Date, joined_concerts.Artist as Performer, joined_concerts.Venue, joined_concerts.City,
-        song_titles.Song, artists.Artist, performed_with.Artist as Performed_with, info.Info FROM songs
-    JOIN joined_concerts ON songs.concerts_key = joined_concerts.key
-    JOIN song_titles ON songs.song_titles_key = song_titles.key
-    JOIN artists ON songs.artists_key = artists.key
-    JOIN artists performed_with ON songs.performed_with_artists_key = performed_with.key
-    JOIN info ON songs.info_key = info.key'''
-    )
+    ''')
+    cursor.execute('''
+        CREATE VIEW IF NOT EXISTS songs_view AS
+        WITH joined_concerts as (
+            SELECT concerts.key, dates.Date, artists.Artist, venues.Venue, cities.City FROM concerts
+            JOIN cities on concerts.cities_key = cities.key
+            JOIN dates on concerts.dates_key = dates.key
+            JOIN artists on concerts.artists_key = artists.key
+            JOIN venues on concerts.venues_key = venues.key
+        )
+        SELECT
+            joined_concerts.Date, joined_concerts.Artist as Performer, joined_concerts.Venue, joined_concerts.City,
+            song_titles.Song, artists.Artist, performed_with.Artist as Performed_with, info.Info FROM songs
+        JOIN joined_concerts ON songs.concerts_key = joined_concerts.key
+        JOIN song_titles ON songs.song_titles_key = song_titles.key
+        JOIN artists ON songs.artists_key = artists.key
+        JOIN artists performed_with ON songs.performed_with_artists_key = performed_with.key
+        JOIN info ON songs.info_key = info.key
+    ''')
 
     # create foreign key tables
     for table_name, col_name in TABLES[2:]:
