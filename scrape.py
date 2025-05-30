@@ -33,10 +33,6 @@ def scrape_page(concerts_key, url):
     songs_df[['song', 'artist', 'performed_with', 'info']] = ""
 
     songs_df = add_song_info(songs_df, songs_list, artist)
-    # these columns use += ending with ", " to handle multiple entries, so remove the trailing ", "
-    for col in ('performed_with', 'info'):
-        songs_df[col] = songs_df[col].str.strip(", ")
-
     return concert_df, songs_df
 
 def add_song_info(songs_df, songs_list, artist):
@@ -44,53 +40,35 @@ def add_song_info(songs_df, songs_list, artist):
     for song_index, song in enumerate(songs_list):
         songs_df.loc[song_index, 'song'] = song.find("div", {"class": "songPart"}).text.strip()
         songs_df.loc[song_index, 'artist'] = artist # set default value for artist column
-        song_info = song.find("div", {"class": "infoPart"}).text
-        song_info = song_info.replace("\n", "").replace("\xa0", " ").strip()
+        song_info = song.find("div", {"class": "infoPart"}).text.strip().replace("\xa0", " ")
 
         if song_info:
-            # split out the individual info notes and whether they contain a link
-            # [1:] because [0] is empty since song_info starts with "("
-            text_info_list = ["(" + s for s in song_info.split("(")[1:]]
-            # look for a link in each piece of info
-            html_info_list = str(song.find("div", {"class": "infoPart"})).split("(")[1:]
-            link_in_info = ["<a" in i for i in html_info_list]
-
-            # using .split("(") to break up the notes fails if there are nested parentheses
-            # i.e. song #19 on /setlist/billy-joel/2016/safeco-field-seattle-wa-5bfeb3ec.html
-            text_info_list, link_in_info = fix_nested_parens(text_info_list, link_in_info)
+            # split out the individual info notes
+            text_info_list = song_info.split("\n(")
+            # look for links to artists in each info note
+            html_info_list = song.find("div", {"class": "infoPart"}).decode_contents().split("\n(")
+            link_in_info = ["<a href=" in i for i in html_info_list[1:]]
 
             for info_index, info in enumerate(text_info_list):
-                # these keywords should only be counted if there's a link to an artist
+                info = info.strip("()\n")
+                # use these keywords if there's a link to an artist, otherwise add to "info"
                 if link_in_info[info_index]:
                     # note if song was originally recorded by a different artist
-                    if "cover)" in info:
-                        songs_df.loc[song_index, 'artist'] = info.replace("cover)", "").strip("( ")
-                    elif "song)" in info:
-                        songs_df.loc[song_index, 'artist'] = info.replace("song)", "").strip("( ")
+                    if info.endswith(" cover"):
+                        songs_df.loc[song_index, 'artist'] = info[:-6]
+                    elif info.endswith(" song"):
+                        songs_df.loc[song_index, 'artist'] = info[:-5]
                     # note if song was performed with additional guest artist(s)
-                    elif "(with " in info:
-                        additional_artist = info.replace("(with ", "").strip(" )")
+                    elif info.startswith("with "):
+                        additional_artist = info[5:].strip(")\n")
                         songs_df.loc[song_index, 'performed_with'] += f"{additional_artist}, "
-                # if none of the above just put the note in the info column
+                    # if none of the above just put the note in the info column
                     else:
-                        songs_df.loc[song_index, 'info'] += f"{info.strip("()")}, "
+                        songs_df.loc[song_index, 'info'] += f"{info}, "
                 else:
-                    songs_df.loc[song_index, 'info'] += f"{info.strip("()")}, "
+                    songs_df.loc[song_index, 'info'] += f"{info}, "
+
+    # these columns use += ending with ", " to handle multiple entries, so remove the trailing ", "
+    songs_df['performed_with'] = songs_df['performed_with'].str.strip(", ")
+    songs_df['info'] = songs_df['info'].str.strip(", ")
     return songs_df
-
-def fix_nested_parens(text_info_list, link_in_info):
-    '''Adjust info lists to handle nested parentheses'''
-    merge_indicies = []
-    # find the indicies which need to be merged with the subsequent index
-    for i, text in enumerate(text_info_list):
-        if text[-1] != ")":
-            merge_indicies.append(i)
-
-    # merge the indicies as necessary
-    for index in merge_indicies:
-        text_info_list[index] = "".join(text_info_list[index:index+2])
-        del text_info_list[index+1]
-        link_in_info[index] = any(link_in_info[index:index+2])
-        del link_in_info[index+1]
-
-    return text_info_list, link_in_info
