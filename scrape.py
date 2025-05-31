@@ -15,19 +15,25 @@ def scrape_page(concerts_key, url):
     if page.status_code != 200:
         print(f"\nUnexpected status code returned: {page.status_code}")
     soup = bs(page.content, "html.parser")
-    content = soup.find("div", {"class": "row main"})
 
     # create the concerts dataframe
-    date_section = content.find("div", {"class": "dateBlock"})
+    date_section = soup.find("div", {"class": "dateBlock"})
     date = date_section.text.strip().replace("\n", ", ") # this outputs "MMM, DD, YYYY"
-    headline = content.find("div", {"class": "setlistHeadline"})
+    headline = soup.find("div", {"class": "setlistHeadline"})
     artist, venue = (i.text for i in headline.find_all("a")[0:2])
     concert_df = pd.DataFrame({'date': [date], 'artist': [artist]})
     concert_df[['venue', 'city']] = venue.split(", ", maxsplit=1)
 
+    # find concert note, if applicable
+    concert_note = soup.find("p", {"class": "info fontSmall text-center"})
+    if concert_note is not None:
+        concert_df['note'] = concert_note.text.replace("Note:", "").strip()
+    else:
+        concert_df['note'] = ""
+
     # create the songs dataframe
-    songs_content = content.find("div", {"class": "setlistContent"})
-    songs_list = songs_content.find_all("li", {"class": "setlistParts song"})
+    setlist_content = soup.find("div", {"class": "setlistContent"})
+    songs_list = setlist_content.find_all("li", {"class": "setlistParts song"})
     concerts_key_col = [concerts_key for _ in range(len(songs_list))]
     songs_df = pd.DataFrame(concerts_key_col, columns=['concerts_key'])
     songs_df[['song', 'artist', 'performed_with', 'info']] = ""

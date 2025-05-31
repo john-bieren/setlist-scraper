@@ -26,6 +26,7 @@ def refactor_dfs(concerts_df, songs_df):
     # create foreign keys for certain columns
     dates_dict = dict_make(concerts_df["date"])
     artists_dict = dict_make(concerts_df["artist"])
+    notes_dict = dict_make(concerts_df['note'])
     venues_dict = dict_make(concerts_df["venue"])
     cities_dict = dict_make(concerts_df["city"])
     song_titles_dict = dict_make(songs_df["song"])
@@ -48,6 +49,7 @@ def refactor_dfs(concerts_df, songs_df):
             ('artist', artists_dict),
             ('venue', venues_dict),
             ('city', cities_dict),
+            ('note', notes_dict)
             ):
         concerts_df[col] = concerts_df[col].replace(dictionary).infer_objects(copy=False)
     for col, dictionary in (
@@ -65,7 +67,8 @@ def refactor_dfs(concerts_df, songs_df):
             'date': 'dates_key',
             'artist': 'artists_key',
             'venue': 'venues_key',
-            'city': 'cities_key'
+            'city': 'cities_key',
+            'note': 'notes_key'
         }, inplace=True
     )
     songs_df.rename(
@@ -80,6 +83,7 @@ def refactor_dfs(concerts_df, songs_df):
     # create the tables which the foreign keys refer to
     dates_df = df_make(dates_dict, 'Date')
     artists_df = df_make(artists_dict, 'Artist')
+    notes_df = df_make(notes_dict, 'Note')
     venues_df = df_make(venues_dict, 'Venue')
     cities_df = df_make(cities_dict, 'City')
     song_titles_df = df_make(song_titles_dict, 'Song')
@@ -90,6 +94,7 @@ def refactor_dfs(concerts_df, songs_df):
         "concerts": concerts_df,
         "songs": songs_df,
         "dates": dates_df,
+        "notes": notes_df,
         "artists": artists_df,
         "venues": venues_df,
         "cities": cities_df,
@@ -121,7 +126,8 @@ def sqlite_save(dfs_dict):
         ("venues", "Venue"),
         ("cities", "City"),
         ("song_titles", "Song"),
-        ("info", "Info")
+        ("info", "Info"),
+        ("notes", "Note")
     )
 
     # connect to db
@@ -140,10 +146,12 @@ def sqlite_save(dfs_dict):
             artists_key INTEGER NOT NULL,
             venues_key INTEGER NOT NULL,
             cities_key INTEGER NOT NULL,
+            notes_key INTEGER NOT NULL,
             FOREIGN KEY (dates_key) REFERENCES dates(key) ON DELETE CASCADE,
             FOREIGN KEY (artists_key) REFERENCES artists(key) ON DELETE CASCADE,
             FOREIGN KEY (venues_key) REFERENCES venues(key) ON DELETE CASCADE,
-            FOREIGN KEY (cities_key) REFERENCES cities(key) ON DELETE CASCADE
+            FOREIGN KEY (cities_key) REFERENCES cities(key) ON DELETE CASCADE,
+            FOREIGN KEY (notes_key) REFERENCES notes(key) ON DELETE CASCADE
         )
     ''')
     cursor.execute('''
@@ -161,16 +169,19 @@ def sqlite_save(dfs_dict):
             FOREIGN KEY (info_key) REFERENCES info(key) ON DELETE CASCADE
         )
     ''')
+    cursor.execute("DROP VIEW IF EXISTS concerts_view")
     cursor.execute('''
-        CREATE VIEW IF NOT EXISTS concerts_view AS
-        SELECT dates.Date, artists.Artist, venues.Venue, cities.City FROM concerts
+        CREATE VIEW concerts_view AS
+        SELECT dates.Date, artists.Artist, venues.Venue, cities.City, notes.Note FROM concerts
         JOIN cities on concerts.cities_key = cities.key
         JOIN dates on concerts.dates_key = dates.key
         JOIN artists on concerts.artists_key = artists.key
         JOIN venues on concerts.venues_key = venues.key
+        JOIN notes on concerts.notes_key = notes.key
     ''')
+    cursor.execute("DROP VIEW IF EXISTS songs_view")
     cursor.execute('''
-        CREATE VIEW IF NOT EXISTS songs_view AS
+        CREATE VIEW songs_view AS
         WITH joined_concerts as (
             SELECT concerts.key, dates.Date, artists.Artist, venues.Venue, cities.City FROM concerts
             JOIN cities on concerts.cities_key = cities.key
