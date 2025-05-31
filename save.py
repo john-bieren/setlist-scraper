@@ -26,9 +26,9 @@ def refactor_dfs(concerts_df, songs_df):
     # create foreign keys for certain columns
     dates_dict = dict_make(concerts_df["date"])
     artists_dict = dict_make(concerts_df["artist"])
-    notes_dict = dict_make(concerts_df['note'])
     venues_dict = dict_make(concerts_df["venue"])
     cities_dict = dict_make(concerts_df["city"])
+    notes_dict = dict_make(concerts_df['note'])
     song_titles_dict = dict_make(songs_df["song"])
     info_dict = dict_make(songs_df["info"])
 
@@ -53,9 +53,9 @@ def refactor_dfs(concerts_df, songs_df):
             ):
         concerts_df[col] = concerts_df[col].replace(dictionary).infer_objects(copy=False)
     for col, dictionary in (
+            ('song', song_titles_dict),
             ('artist', artists_dict),
             ('performed_with', artists_dict),
-            ('song', song_titles_dict),
             ('info', info_dict)
             ):
         songs_df[col] = songs_df[col].replace(dictionary).infer_objects(copy=False)
@@ -83,9 +83,9 @@ def refactor_dfs(concerts_df, songs_df):
     # create the tables which the foreign keys refer to
     dates_df = df_make(dates_dict, 'Date')
     artists_df = df_make(artists_dict, 'Artist')
-    notes_df = df_make(notes_dict, 'Note')
     venues_df = df_make(venues_dict, 'Venue')
     cities_df = df_make(cities_dict, 'City')
+    notes_df = df_make(notes_dict, 'Note')
     song_titles_df = df_make(song_titles_dict, 'Song')
     info_df = df_make(info_dict, 'Info')
 
@@ -94,10 +94,10 @@ def refactor_dfs(concerts_df, songs_df):
         "concerts": concerts_df,
         "songs": songs_df,
         "dates": dates_df,
-        "notes": notes_df,
         "artists": artists_df,
         "venues": venues_df,
         "cities": cities_df,
+        "notes": notes_df,
         "song_titles": song_titles_df,
         "info": info_df
     }
@@ -125,9 +125,9 @@ def sqlite_save(dfs_dict):
         ("artists", "Artist"),
         ("venues", "Venue"),
         ("cities", "City"),
+        ("notes", "Note"),
         ("song_titles", "Song"),
-        ("info", "Info"),
-        ("notes", "Note")
+        ("info", "Info")
     )
 
     # connect to db
@@ -137,6 +137,10 @@ def sqlite_save(dfs_dict):
     # delete the existing tables so they can be replaced entirely
     for table_name, _ in TABLES:
         cursor.execute(f'DROP TABLE IF EXISTS {table_name}')
+
+    # create foreign key tables
+    for table_name, col_name in TABLES[2:]:
+        cursor.execute(f"CREATE TABLE {table_name} (key INTEGER, {col_name} TEXT)")
 
     # create tables and views
     cursor.execute('''
@@ -173,10 +177,10 @@ def sqlite_save(dfs_dict):
     cursor.execute('''
         CREATE VIEW concerts_view AS
         SELECT dates.Date, artists.Artist, venues.Venue, cities.City, notes.Note FROM concerts
-        JOIN cities on concerts.cities_key = cities.key
         JOIN dates on concerts.dates_key = dates.key
         JOIN artists on concerts.artists_key = artists.key
         JOIN venues on concerts.venues_key = venues.key
+        JOIN cities on concerts.cities_key = cities.key
         JOIN notes on concerts.notes_key = notes.key
     ''')
     cursor.execute("DROP VIEW IF EXISTS songs_view")
@@ -184,10 +188,10 @@ def sqlite_save(dfs_dict):
         CREATE VIEW songs_view AS
         WITH joined_concerts as (
             SELECT concerts.key, dates.Date, artists.Artist, venues.Venue, cities.City FROM concerts
-            JOIN cities on concerts.cities_key = cities.key
             JOIN dates on concerts.dates_key = dates.key
             JOIN artists on concerts.artists_key = artists.key
             JOIN venues on concerts.venues_key = venues.key
+            JOIN cities on concerts.cities_key = cities.key
         )
         SELECT
             joined_concerts.Date, joined_concerts.Artist as Performer, joined_concerts.Venue, joined_concerts.City,
@@ -198,10 +202,6 @@ def sqlite_save(dfs_dict):
         JOIN artists performed_with ON songs.performed_with_artists_key = performed_with.key
         JOIN info ON songs.info_key = info.key
     ''')
-
-    # create foreign key tables
-    for table_name, col_name in TABLES[2:]:
-        cursor.execute(f"CREATE TABLE {table_name} (key INTEGER, {col_name} TEXT)")
 
     # save data to tables
     for table_name, df in dfs_dict.items():
