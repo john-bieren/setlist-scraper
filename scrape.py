@@ -19,6 +19,7 @@ def scrape_page(concerts_key, url):
     # create the concerts dataframe
     date_section = soup.find("div", {"class": "dateBlock"})
     date = date_section.text.strip().replace("\n", ", ") # this outputs "MMM, DD, YYYY"
+    date = date.replace(",", "", 1) # this outputs "MMM DD, YYYY"
     headline = soup.find("div", {"class": "setlistHeadline"})
     artist, venue = (i.text for i in headline.find_all("a")[0:2])
     concert_df = pd.DataFrame({'date': [date], 'artist': [artist]})
