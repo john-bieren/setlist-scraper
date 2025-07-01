@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''Scrapes setlist.fm for setlists and concert info from a given list of URLs'''
+"""Scrapes setlist.fm for setlists and concert info from a given list of URLs"""
 
 from json import dump, load
 from sys import exit as sys_exit
@@ -33,7 +33,7 @@ def main():
     print("Complete")
 
 def load_setlists():
-    '''Load URLs from setlists.json, exit the script if there's an issue'''
+    """Load URLs from setlists.json, exit the script if there's an issue"""
     try:
         with open("setlists.json", "r", encoding="UTF-8") as file:
             setlists = load(file)
