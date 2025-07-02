@@ -6,11 +6,13 @@ from json import dump, load
 from sys import exit as sys_exit
 
 import pandas as pd
+from requests import Session
 from tqdm import tqdm
 
 from save import csv_save, refactor_dfs, sqlite_save
 from scrape import scrape_page
 
+session = Session()
 
 def main():
     print("Loading concerts")
@@ -19,7 +21,14 @@ def main():
 
     print("Scraping setlists")
     for concerts_key, url in tqdm(enumerate(setlists), total=len(setlists)):
-        c_df, s_df = scrape_page(concerts_key, url)
+        page = session.get(url, timeout=10)
+        if page.status_code == 404:
+            tqdm.write(f'Skipped "{url}": the page does not exist')
+            continue
+        if page.status_code != 200:
+            tqdm.write(f'Unexpected status code {page.status_code} returned by "{url}"')
+
+        c_df, s_df = scrape_page(concerts_key, page)
         concerts_df = pd.concat([concerts_df, c_df])
         songs_df = pd.concat([songs_df, s_df])
 

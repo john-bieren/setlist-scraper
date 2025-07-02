@@ -4,16 +4,10 @@
 
 import pandas as pd
 from bs4 import BeautifulSoup as bs
-from requests import Session
 
-session = Session()
 
-def scrape_page(concerts_key, url):
+def scrape_page(concerts_key, page):
     """Get songs and concert info from page"""
-    # get page content
-    page = session.get(url, timeout=10)
-    if page.status_code != 200:
-        print(f"\nUnexpected status code returned: {page.status_code}")
     soup = bs(page.content, "html.parser")
 
     # create the concerts dataframe
