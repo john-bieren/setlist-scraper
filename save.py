@@ -51,15 +51,14 @@ def refactor_dfs(concerts_df, songs_df):
             ("city", cities_dict),
             ("note", notes_dict)
             ):
-        concerts_df[col] = concerts_df[col].replace(dictionary).infer_objects(copy=False)
+        concerts_df[col] = concerts_df[col].replace(dictionary)
     for col, dictionary in (
             ("song", song_titles_dict),
             ("artist", artists_dict),
             ("performed_with", artists_dict),
             ("info", info_dict)
             ):
-        songs_df[col] = songs_df[col].replace(dictionary).infer_objects(copy=False)
-
+        songs_df[col] = songs_df[col].replace(dictionary)
 
     # rename foreign key columns to reflect the table that they refer to
     concerts_df.rename(
@@ -90,7 +89,7 @@ def refactor_dfs(concerts_df, songs_df):
     info_df = df_make(info_dict, "Info")
 
     # return a dictionary of table names and their contents
-    return {
+    dfs_dict = {
         "concerts": concerts_df,
         "songs": songs_df,
         "dates": dates_df,
@@ -101,6 +100,7 @@ def refactor_dfs(concerts_df, songs_df):
         "song_titles": song_titles_df,
         "info": info_df
     }
+    return dfs_dict
 
 def dict_make(col):
     """Create a dictionary of foreign keys for the values of a dataframe column"""
@@ -131,8 +131,8 @@ def sqlite_save(dfs_dict):
     )
 
     # connect to db
-    db_cursor = connect("setlist-scraper.db")
-    cursor = db_cursor.cursor()
+    db_connection = connect("setlist-scraper.db")
+    cursor = db_connection.cursor()
 
     # delete the existing tables so they can be replaced entirely
     for table_name, _ in TABLES:
@@ -143,7 +143,7 @@ def sqlite_save(dfs_dict):
         cursor.execute(f"CREATE TABLE {table_name} (key INTEGER, {col_name} TEXT)")
 
     # create tables and views
-    cursor.execute("""
+    cursor.executescript("""
         CREATE TABLE concerts (
             key INTEGER PRIMARY KEY,
             dates_key INTEGER NOT NULL,
@@ -156,9 +156,8 @@ def sqlite_save(dfs_dict):
             FOREIGN KEY (venues_key) REFERENCES venues(key) ON DELETE CASCADE,
             FOREIGN KEY (cities_key) REFERENCES cities(key) ON DELETE CASCADE,
             FOREIGN KEY (notes_key) REFERENCES notes(key) ON DELETE CASCADE
-        )
-    """)
-    cursor.execute("""
+        );
+
         CREATE TABLE songs (
             key INTEGER PRIMARY KEY,
             concerts_key INTEGER NOT NULL,
@@ -171,20 +170,18 @@ def sqlite_save(dfs_dict):
             FOREIGN KEY (artists_key) REFERENCES artists(key) ON DELETE CASCADE,
             FOREIGN KEY (performed_with_artists_key) REFERENCES artists(key) ON DELETE CASCADE,
             FOREIGN KEY (info_key) REFERENCES info(key) ON DELETE CASCADE
-        )
-    """)
-    cursor.execute("DROP VIEW IF EXISTS concerts_view")
-    cursor.execute("""
+        );
+
+        DROP VIEW IF EXISTS concerts_view;
         CREATE VIEW concerts_view AS
         SELECT dates.Date, artists.Artist, venues.Venue, cities.City, notes.Note FROM concerts
         JOIN dates on concerts.dates_key = dates.key
         JOIN artists on concerts.artists_key = artists.key
         JOIN venues on concerts.venues_key = venues.key
         JOIN cities on concerts.cities_key = cities.key
-        JOIN notes on concerts.notes_key = notes.key
-    """)
-    cursor.execute("DROP VIEW IF EXISTS songs_view")
-    cursor.execute("""
+        JOIN notes on concerts.notes_key = notes.key;
+
+        DROP VIEW IF EXISTS songs_view;
         CREATE VIEW songs_view AS
         WITH joined_concerts as (
             SELECT concerts.key, dates.Date, artists.Artist, venues.Venue, cities.City FROM concerts
@@ -200,14 +197,14 @@ def sqlite_save(dfs_dict):
         JOIN song_titles ON songs.song_titles_key = song_titles.key
         JOIN artists ON songs.artists_key = artists.key
         JOIN artists performed_with ON songs.performed_with_artists_key = performed_with.key
-        JOIN info ON songs.info_key = info.key
+        JOIN info ON songs.info_key = info.key;
     """)
 
     # save data to tables
     for table_name, df in dfs_dict.items():
         df.reset_index(drop=True, inplace=True)
         df.index.name = "key"
-        df.to_sql(name=table_name, con=db_cursor, if_exists="append")
+        df.to_sql(name=table_name, con=db_connection, if_exists="append")
 
-    db_cursor.commit()
-    db_cursor.close()
+    db_connection.commit()
+    db_connection.close()
