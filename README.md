@@ -23,11 +23,6 @@ Create a file in the project directory named `setlists.json` or run `main.py` to
 ]
 ```
 
-Run `main.py`. Upon completion, the data will be saved in two formats:
-* Two .csv files
-    * `concerts.csv` contains information about each concert.
-    * `songs.csv` contains information about each song played at each concert.
-
-    `songs.csv` has a `concerts_key` column to allow you to join the concerts data to it in analysis software using the `key` column in `concerts.csv`.
-
-* A SQLite database, `setlist-scraper.db`, with views corresponding to `concerts.csv` and the fully joined version of `songs.csv` described above.
+Run `main.py`. Upon completion, the data will be saved in two .csv files:
+* `concerts.csv`, which contains information about each concert.
+* `songs.csv`, which contains information about each song played at each concert, and can be joined with `concerts.csv`.

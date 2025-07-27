@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Scrapes setlist.fm for setlists and concert info from a given list of URLs"""
+"""Scrape setlist.fm for setlists and concert info from a given list of URLs"""
 
 from json import dump, load
 from sys import exit as sys_exit
@@ -9,7 +9,6 @@ import pandas as pd
 from requests import Session
 from tqdm import tqdm
 
-from save import csv_save, refactor_dfs, sqlite_save
 from scrape import scrape_page
 
 
@@ -35,10 +34,6 @@ def main():
     print("Saving data to CSV")
     csv_save(concerts_df, songs_df)
 
-    print("Saving data to SQLite")
-    dfs_dict = refactor_dfs(concerts_df, songs_df)
-    sqlite_save(dfs_dict)
-
     print("Complete")
 
 def load_setlists():
@@ -55,6 +50,19 @@ def load_setlists():
             dump([], file)
         print("Please put setlist links in setlists.json")
     sys_exit()
+
+def csv_save(concerts_df, songs_df):
+    """Save data to CSV files"""
+    # reset index so that the two tables can be joined on songs_df["concerts_key"]
+    concerts_df.reset_index(drop=True, inplace=True)
+    concerts_df.index.name = "key"
+    while True:
+        try:
+            concerts_df.to_csv("concerts.csv", index=True)
+            songs_df.to_csv("songs.csv", index=False)
+            break
+        except PermissionError:
+            input("Close open CSV save file(s) to allow save, then press enter")
 
 if __name__ == "__main__":
     main()
