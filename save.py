@@ -45,19 +45,19 @@ def refactor_dfs(concerts_df, songs_df):
 
     # replace values with their foreign keys
     for col, dictionary in (
-            ("date", dates_dict),
-            ("artist", artists_dict),
-            ("venue", venues_dict),
-            ("city", cities_dict),
-            ("note", notes_dict)
-            ):
+        ("date", dates_dict),
+        ("artist", artists_dict),
+        ("venue", venues_dict),
+        ("city", cities_dict),
+        ("note", notes_dict)
+        ):
         concerts_df[col] = concerts_df[col].replace(dictionary)
     for col, dictionary in (
-            ("song", song_titles_dict),
-            ("artist", artists_dict),
-            ("performed_with", artists_dict),
-            ("info", info_dict)
-            ):
+        ("song", song_titles_dict),
+        ("artist", artists_dict),
+        ("performed_with", artists_dict),
+        ("info", info_dict)
+        ):
         songs_df[col] = songs_df[col].replace(dictionary)
 
     # rename foreign key columns to reflect the table that they refer to

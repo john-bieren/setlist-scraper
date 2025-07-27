@@ -12,7 +12,6 @@ from tqdm import tqdm
 from save import csv_save, refactor_dfs, sqlite_save
 from scrape import scrape_page
 
-session = Session()
 
 def main():
     print("Loading concerts")
@@ -20,6 +19,7 @@ def main():
     concerts_df, songs_df = (pd.DataFrame() for _ in range(2))
 
     print("Scraping setlists")
+    session = Session()
     for concerts_key, url in tqdm(enumerate(setlists), total=len(setlists)):
         page = session.get(url, timeout=10)
         if page.status_code == 404:
