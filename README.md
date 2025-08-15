@@ -1,12 +1,16 @@
 # Setlist Scraper
 
-An app for collecting concert setlists from [setlist.fm](https://www.setlist.fm/). Given a list of setlist links, the scraper returns data on the concerts listed and the songs performed therein.
+A script for collecting concert setlists from [setlist.fm](https://www.setlist.fm/). Given a list of setlist links, the scraper returns data on the concerts listed and their setlists.
 
 ## Install
 
 Clone the repository:
 ```
 git clone https://github.com/john-bieren/setlist-scraper.git
+```
+Install dependencies:
+```
+python -m pip install -r requirements.txt
 ```
 **Note**: The tags in this repository do not correspond to releases, they simply indicate breaking changes.
 
@@ -24,5 +28,7 @@ Create a file in the project directory named `setlists.json` or run `main.py` to
 ```
 
 Run `main.py`. Upon completion, the data will be saved in two .csv files:
-* `concerts.csv`, which contains information about each concert.
-* `songs.csv`, which contains information about each song played at each concert, and can be joined with `concerts.csv`.
+* `concerts.csv`, which contains information about the concerts.
+* `songs.csv`, which contains information about the songs performed at each concert.
+
+Using analysis software, you can join `concerts.csv` to `songs.csv` using their `key` and `concerts_key` columns, respectively.
