@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup as bs
 
 def scrape_page(concerts_key, page):
     """Get songs and concert info from page"""
-    soup = bs(page.content, "html.parser")
+    soup = bs(page.content, "lxml")
 
     # create the concerts dataframe
     date_section = soup.find("div", {"class": "dateBlock"})
