@@ -4,12 +4,10 @@ A script for collecting concert setlists from [setlist.fm](https://www.setlist.f
 
 ## Install
 
-Clone the repository:
+Clone the repository and install dependencies:
 ```
 git clone https://github.com/john-bieren/setlist-scraper.git
-```
-Install dependencies:
-```
+cd setlist-scraper
 python -m pip install -r requirements.txt
 ```
 **Note**: The tags in this repository do not correspond to releases, they simply indicate breaking changes.
