@@ -2,8 +2,8 @@
 
 """Scrape setlist.fm for setlists and concert info from a given list of URLs"""
 
-from json import dump, load
-from sys import exit as sys_exit
+import json
+import sys
 
 import pandas as pd
 from requests import Session
@@ -12,7 +12,7 @@ from tqdm import tqdm
 from scrape import scrape_page
 
 
-def main():
+def main() -> None:
     print("Loading concerts")
     setlists = load_setlists()
     concerts_df, songs_df = (pd.DataFrame() for _ in range(2))
@@ -27,7 +27,7 @@ def main():
         if page.status_code != 200:
             tqdm.write(f'Unexpected status code {page.status_code} returned by "{url}"')
 
-        c_df, s_df = scrape_page(concerts_key, page)
+        c_df, s_df = scrape_page(page, concerts_key)
         concerts_df = pd.concat([concerts_df, c_df])
         songs_df = pd.concat([songs_df, s_df])
 
@@ -36,22 +36,22 @@ def main():
 
     print("Complete")
 
-def load_setlists():
+def load_setlists() -> list[str]:
     """Load URLs from setlists.json, exit the script if there's an issue"""
     try:
         with open("setlists.json", "r", encoding="UTF-8") as file:
-            setlists = load(file)
+            setlists = json.load(file)
             if len(setlists) == 0:
                 print("Please put setlist links in setlists.json")
             else:
                 return setlists
     except FileNotFoundError:
         with open("setlists.json", "w", encoding="UTF-8") as file:
-            dump([], file)
+            json.dump([], file)
         print("Please put setlist links in setlists.json")
-    sys_exit()
+    sys.exit()
 
-def csv_save(concerts_df, songs_df):
+def csv_save(concerts_df: pd.DataFrame, songs_df: pd.DataFrame) -> None:
     """Save data to CSV files"""
     # reset index so that the two tables can be joined on songs_df["concerts_key"]
     concerts_df.reset_index(drop=True, inplace=True)

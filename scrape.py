@@ -4,9 +4,11 @@
 
 import pandas as pd
 from bs4 import BeautifulSoup as bs
+from bs4 import ResultSet
+from requests import Response
 
 
-def scrape_page(concerts_key, page):
+def scrape_page(page: Response, concerts_key: int) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Get songs and concert info from page"""
     soup = bs(page.content, "lxml")
 
@@ -36,7 +38,7 @@ def scrape_page(concerts_key, page):
     songs_df = add_song_info(songs_df, songs_list, artist)
     return concert_df, songs_df
 
-def add_song_info(songs_df, songs_list, artist):
+def add_song_info(songs_df: pd.DataFrame, songs_list: ResultSet, artist: str) -> pd.DataFrame:
     """Add the additional info from the notes listed for each song"""
     for song_index, song in enumerate(songs_list):
         songs_df.loc[song_index, "song"] = song.find("div", {"class": "songPart"}).text.strip()
