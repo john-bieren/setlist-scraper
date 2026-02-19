@@ -6,7 +6,7 @@ import json
 import sys
 
 import pandas as pd
-from requests import Session
+import requests
 from tqdm import tqdm
 
 from scrape import scrape_page
@@ -16,10 +16,10 @@ def main() -> None:
     """Scrapes setlist.fm for setlists and concert info from a list of URLs."""
     print("Loading concerts")
     setlists = load_setlists()
-    concerts_df, songs_df = (pd.DataFrame() for _ in range(2))
+    concerts_df, songs_df = [pd.DataFrame() for _ in range(2)]
 
     print("Scraping setlists")
-    session = Session()
+    session = requests.Session()
     for concerts_key, url in tqdm(enumerate(setlists), total=len(setlists)):
         page = session.get(url, timeout=10)
         if page.status_code == 404:
@@ -43,14 +43,12 @@ def load_setlists() -> list[str]:
     try:
         with open("setlists.json", "r", encoding="UTF-8") as file:
             setlists = json.load(file)
-            if len(setlists) == 0:
-                print("Please put setlist links in setlists.json")
-            else:
+            if len(setlists) > 0:
                 return setlists
     except FileNotFoundError:
         with open("setlists.json", "w", encoding="UTF-8") as file:
             json.dump([], file)
-        print("Please put setlist links in setlists.json")
+    print("Please put setlist links in setlists.json")
     sys.exit()
 
 

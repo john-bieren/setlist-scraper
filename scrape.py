@@ -61,19 +61,19 @@ def add_song_info(
             for info_index, info in enumerate(text_info_list):
                 info = info.strip("()\n")
                 # use these keywords if there's a link to an artist, otherwise add to "info"
-                if link_in_info[info_index]:
-                    # note if song was originally recorded by a different artist
-                    if info.endswith(" cover"):
-                        songs_df.loc[song_index, "artist"] = info[:-6]
-                    elif info.endswith(" song"):
-                        songs_df.loc[song_index, "artist"] = info[:-5]
-                    # note if song was performed with additional guest artist(s)
-                    elif info.startswith("with "):
-                        artist_name = info[5:].strip(")\n")
-                        songs_df.loc[song_index, "performed_with"] += f"{artist_name}, "
-                    # if none of the above just put the note in the info column
-                    else:
-                        songs_df.loc[song_index, "info"] += f"{info}, "
+                if not link_in_info[info_index]:
+                    songs_df.loc[song_index, "info"] += f"{info}, "
+                    continue
+                # note if song was originally recorded by a different artist
+                if info.endswith(" cover"):
+                    songs_df.loc[song_index, "artist"] = info[:-6]
+                elif info.endswith(" song"):
+                    songs_df.loc[song_index, "artist"] = info[:-5]
+                # note if song was performed with additional guest artist(s)
+                elif info.startswith("with "):
+                    artist_name = info[5:].strip(")\n")
+                    songs_df.loc[song_index, "performed_with"] += f"{artist_name}, "
+                # if none of the above just put the note in the info column
                 else:
                     songs_df.loc[song_index, "info"] += f"{info}, "
 
