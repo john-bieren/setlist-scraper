@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Scrape setlist.fm for setlists and concert info from a given list of URLs"""
+"""Scrapes setlist.fm for setlists and concert info from a list of URLs."""
 
 import json
 import sys
@@ -13,6 +13,7 @@ from scrape import scrape_page
 
 
 def main() -> None:
+    """Scrapes setlist.fm for setlists and concert info from a list of URLs."""
     print("Loading concerts")
     setlists = load_setlists()
     concerts_df, songs_df = (pd.DataFrame() for _ in range(2))
@@ -36,8 +37,9 @@ def main() -> None:
 
     print("Complete")
 
+
 def load_setlists() -> list[str]:
-    """Load URLs from setlists.json, exit the script if there's an issue"""
+    """Loads URLs from setlists.json, exits the script if there's an issue."""
     try:
         with open("setlists.json", "r", encoding="UTF-8") as file:
             setlists = json.load(file)
@@ -51,8 +53,9 @@ def load_setlists() -> list[str]:
         print("Please put setlist links in setlists.json")
     sys.exit()
 
+
 def csv_save(concerts_df: pd.DataFrame, songs_df: pd.DataFrame) -> None:
-    """Save data to CSV files"""
+    """Saves data to CSV files."""
     # reset index so that the two tables can be joined on songs_df["concerts_key"]
     concerts_df.reset_index(drop=True, inplace=True)
     concerts_df.index.name = "key"
@@ -63,6 +66,7 @@ def csv_save(concerts_df: pd.DataFrame, songs_df: pd.DataFrame) -> None:
             break
         except PermissionError:
             input("Close open CSV save file(s) to allow save, then press enter")
+
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,4 @@
-#!/usr/bin/env python3
-
-"""Functions for scraping setlist pages"""
+"""Defines functions for scraping setlist pages."""
 
 import pandas as pd
 from bs4 import BeautifulSoup as bs
@@ -9,13 +7,13 @@ from requests import Response
 
 
 def scrape_page(page: Response, concerts_key: int) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Get songs and concert info from page"""
+    """Gets songs and concert info from `page`."""
     soup = bs(page.content, "lxml")
 
     # create the concerts dataframe
     date_section = soup.find("div", {"class": "dateBlock"})
-    date = date_section.text.strip().replace("\n", ", ") # this outputs "MMM, DD, YYYY"
-    date = date.replace(",", "", 1) # this outputs "MMM DD, YYYY"
+    date = date_section.text.strip().replace("\n", ", ")  # format is "MMM, DD, YYYY"
+    date = date.replace(",", "", 1)  # format is "MMM DD, YYYY"
     headline = soup.find("div", {"class": "setlistHeadline"})
     artist, venue = (i.text for i in headline.find_all("a")[0:2])
     concert_df = pd.DataFrame({"date": [date], "artist": [artist]})
@@ -38,18 +36,26 @@ def scrape_page(page: Response, concerts_key: int) -> tuple[pd.DataFrame, pd.Dat
     songs_df = add_song_info(songs_df, songs_list, artist)
     return concert_df, songs_df
 
-def add_song_info(songs_df: pd.DataFrame, songs_list: ResultSet, artist: str) -> pd.DataFrame:
-    """Add the additional info from the notes listed for each song"""
+
+def add_song_info(
+    songs_df: pd.DataFrame,
+    songs_list: ResultSet,
+    artist: str,
+) -> pd.DataFrame:
+    """Adds the additional info from the notes listed for each song."""
     for song_index, song in enumerate(songs_list):
-        songs_df.loc[song_index, "song"] = song.find("div", {"class": "songPart"}).text.strip()
-        songs_df.loc[song_index, "artist"] = artist # set default value for artist column
-        song_info = song.find("div", {"class": "infoPart"}).text.strip().replace("\xa0", " ")
+        song_tag = song.find("div", {"class": "songPart"})
+        info_tag = song.find("div", {"class": "infoPart"})
+
+        songs_df.loc[song_index, "song"] = song_tag.text.strip()
+        song_info = info_tag.text.strip().replace("\xa0", " ")
+        songs_df.loc[song_index, "artist"] = artist  # default value for artist column
 
         if song_info:
             # split out the individual info notes
             text_info_list = song_info.split("\n(")
             # look for links to artists in each info note
-            html_info_list = song.find("div", {"class": "infoPart"}).decode_contents().split("\n(")
+            html_info_list = info_tag.decode_contents().split("\n(")
             link_in_info = ["<a href=" in i for i in html_info_list[1:]]
 
             for info_index, info in enumerate(text_info_list):
@@ -63,8 +69,8 @@ def add_song_info(songs_df: pd.DataFrame, songs_list: ResultSet, artist: str) ->
                         songs_df.loc[song_index, "artist"] = info[:-5]
                     # note if song was performed with additional guest artist(s)
                     elif info.startswith("with "):
-                        additional_artist = info[5:].strip(")\n")
-                        songs_df.loc[song_index, "performed_with"] += f"{additional_artist}, "
+                        artist_name = info[5:].strip(")\n")
+                        songs_df.loc[song_index, "performed_with"] += f"{artist_name}, "
                     # if none of the above just put the note in the info column
                     else:
                         songs_df.loc[song_index, "info"] += f"{info}, "
