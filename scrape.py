@@ -15,8 +15,8 @@ def scrape_page(page: Response, concerts_key: int) -> tuple[pd.DataFrame, pd.Dat
     date = date_section.text.strip().replace("\n", ", ")  # format is "MMM, DD, YYYY"
     date = date.replace(",", "", 1)  # format is "MMM DD, YYYY"
     headline = soup.find("div", {"class": "setlistHeadline"})
-    artist, venue = (i.text for i in headline.find_all("a")[0:2])
-    concert_df = pd.DataFrame({"date": [date], "artist": [artist]})
+    performer, venue = [i.text for i in headline.find_all("a")[0:2]]
+    concert_df = pd.DataFrame({"date": [date], "performer": [performer]})
     concert_df[["venue", "city"]] = venue.split(", ", maxsplit=1)
 
     # find concert note, if applicable
@@ -31,16 +31,17 @@ def scrape_page(page: Response, concerts_key: int) -> tuple[pd.DataFrame, pd.Dat
     songs_list = setlist_content.find_all("li", {"class": "setlistParts song"})
     concerts_key_col = [concerts_key for _ in range(len(songs_list))]
     songs_df = pd.DataFrame(concerts_key_col, columns=["concerts_key"])
-    songs_df[["song", "artist", "performed_with", "info"]] = ""
+    songs_df[["song", "performed_with", "info"]] = ""
+    # the concert's performer is the default value for the artist column
+    songs_df["artist"] = performer
 
-    songs_df = add_song_info(songs_df, songs_list, artist)
+    songs_df = add_song_info(songs_df, songs_list)
     return concert_df, songs_df
 
 
 def add_song_info(
     songs_df: pd.DataFrame,
     songs_list: ResultSet,
-    artist: str,
 ) -> pd.DataFrame:
     """Adds the additional info from the notes listed for each song."""
     for song_index, song in enumerate(songs_list):
@@ -49,7 +50,6 @@ def add_song_info(
 
         songs_df.loc[song_index, "song"] = song_tag.text.strip()
         song_info = info_tag.text.strip().replace("\xa0", " ")
-        songs_df.loc[song_index, "artist"] = artist  # default value for artist column
 
         if song_info:
             # split out the individual info notes
