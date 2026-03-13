@@ -11,21 +11,18 @@ setlist links, the scraper returns data on the concerts listed and their setlist
 Clone the repository and install dependencies:
 
 ```
-git clone https://github.com/john-bieren/setlist-scraper.git
-cd setlist-scraper
-python -m pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
-Or install dev dependencies:
+Or install development dependencies:
 
 ```
-git clone https://github.com/john-bieren/setlist-scraper.git
-cd setlist-scraper
-python -m pip install -r requirements-dev.txt
+pip install -r requirements-dev.txt
 ```
 
-**Note**: The tags in this repository do not correspond to releases, they simply indicate breaking
-changes.
+**Note**: The tags in this repository do not correspond to releases, instead they indicate the
+conclusion of a series of breaking changes. Since v3, commits with breaking changes are marked in
+the commit message body.
 
 ## Usage
 
@@ -47,5 +44,12 @@ Run `main.py`. Upon completion, the data will be saved in two .csv files:
 * `concerts.csv`, which contains information about the concerts.
 * `songs.csv`, which contains information about the songs performed at each concert.
 
-Using analysis software, you can join `concerts.csv` to `songs.csv` using their `key` and
-`concerts_key` columns, respectively.
+You can join `concerts.csv` to `songs.csv` using their `key` and `concerts_key` columns,
+respectively:
+
+```python
+import pandas as pd
+songs = pd.read_csv("songs.csv")
+concerts = pd.read_csv("concerts.csv")
+merged_songs = pd.merge(songs, concerts, left_on="concerts_key", right_on="key")
+```
