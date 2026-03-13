@@ -52,6 +52,7 @@ def add_song_info(
         song_info = info_tag.text.strip().replace("\xa0", " ")
 
         if song_info:
+            info_list = []
             # split out the individual info notes
             text_info_list = song_info.split("\n(")
             # look for links to artists in each info note
@@ -62,22 +63,19 @@ def add_song_info(
                 info = info.strip("()\n")
                 # use these keywords if there's a link to an artist, otherwise add to "info"
                 if not link_in_info[info_index]:
-                    songs_df.loc[song_index, "info"] += f"{info}, "
-                    continue
+                    info_list.append(info)
                 # note if song was originally recorded by a different artist
-                if info.endswith(" cover"):
+                elif info.endswith(" cover"):
                     songs_df.loc[song_index, "artist"] = info[:-6]
                 elif info.endswith(" song"):
                     songs_df.loc[song_index, "artist"] = info[:-5]
-                # note if song was performed with additional guest artist(s)
+                # note if song was performed with an additional artist
                 elif info.startswith("with "):
                     artist_name = info[5:].strip(")\n")
-                    songs_df.loc[song_index, "performed_with"] += f"{artist_name}, "
+                    songs_df.loc[song_index, "performed_with"] = artist_name
                 # if none of the above just put the note in the info column
                 else:
-                    songs_df.loc[song_index, "info"] += f"{info}, "
+                    info_list.append(info)
+            songs_df.loc[song_index, "info"] = ", ".join(info_list)
 
-    # these columns use += ending with ", " to handle multiple entries, so remove the trailing ", "
-    songs_df["performed_with"] = songs_df["performed_with"].str.strip(", ")
-    songs_df["info"] = songs_df["info"].str.strip(", ")
     return songs_df
