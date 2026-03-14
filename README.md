@@ -20,9 +20,10 @@ Or install development dependencies:
 pip install -r requirements-dev.txt
 ```
 
-**Note**: The tags in this repository do not correspond to releases, instead they indicate the
-conclusion of a series of breaking changes. Since v3, commits with breaking changes are marked in
-the commit message body.
+> [!NOTE]
+> The tags in this repository do not correspond to releases, instead they indicate the conclusion of
+a series of breaking changes. Since v3, commits with breaking changes are marked in the commit
+message body.
 
 ## Usage
 
